@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
-	"ddd/domain_service/sample/service"
+	"database/sql"
+	"ddd/repository/sample/repository"
+	"ddd/repository/sample/service"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,12 +12,37 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
+var db *sql.DB
+
+func init() {
+	var err error
+	db, err = sql.Open("sqlite3", "./sample.db")
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	schema := `
+	CREATE TABLE IF NOT EXISTS users (
+		id TEXT PRIMARY KEY,
+		name TEXT UNIQUE NOT NULL
+	);`
+	if _, err := db.Exec(schema); err != nil {
+		log.Fatalf("Failed to create table: %v", err)
+	}
+
+}
 func main() {
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8081",
 		Handler: setupRoutes(),
 	}
 
@@ -52,9 +79,10 @@ func main() {
 }
 
 func setupRoutes() http.Handler {
-	mux := http.NewServeMux()
+	userRepository := repository.NewUserRepository(db)
+	svc := service.NewUserService(userRepository)
 
-	svc := service.NewUserService()
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /users", func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]string
