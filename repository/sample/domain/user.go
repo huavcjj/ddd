@@ -6,56 +6,79 @@ import (
 )
 
 var (
-	ErrUserNameTooShort = errors.New("user name is too short")
+	ErrUserNameIsTooShort = errors.New("user name is too short")
+	ErrUserNameIsTooLong  = errors.New("user name is too long")
+	ErrUserIDEmpty        = errors.New("user ID is empty")
 )
 
 type UserID struct {
 	value string
 }
 
-func NewUserID() UserID {
-	return UserID{value: uuid.NewString()}
+func NewUserID(value string) (UserID, error) {
+	if len(value) == 0 {
+		return UserID{}, ErrUserIDEmpty
+	}
+	return UserID{value: value}, nil
+}
+
+func (id UserID) String() string {
+	return id.value
 }
 
 type UserName struct {
 	value string
 }
 
-func NewUserName(name string) UserName {
-	return UserName{value: name}
+func NewUserName(value string) (UserName, error) {
+	if len(value) < 3 {
+		return UserName{}, ErrUserNameIsTooShort
+	}
+	if len(value) > 20 {
+		return UserName{}, ErrUserNameIsTooLong
+	}
+	return UserName{value: value}, nil
+}
+
+func (n UserName) String() string {
+	return n.value
 }
 
 type User struct {
-	UserID   UserID
-	UserName UserName
+	id   UserID
+	name UserName
 }
 
-func NewUser(userName UserName) (*User, error) {
-	if len(userName.value) < 3 {
-		return nil, ErrUserNameTooShort
+func NewUser(name UserName) (*User, error) {
+	id, err := NewUserID(uuid.NewString())
+	if err != nil {
+		return nil, err
 	}
-
 	return &User{
-		UserID:   NewUserID(),
-		UserName: userName,
+		id:   id,
+		name: name,
 	}, nil
 }
 
-func NewUserFromStrings(id, name string) (*User, error) {
+func NewUserFromStrings(idStr, nameStr string) (*User, error) {
+	id, err := NewUserID(idStr)
+	if err != nil {
+		return nil, err
+	}
+	name, err := NewUserName(nameStr)
+	if err != nil {
+		return nil, err
+	}
 	return &User{
-		UserID: UserID{
-			value: id,
-		},
-		UserName: UserName{
-			value: name,
-		},
+		id:   id,
+		name: name,
 	}, nil
 }
 
-func (u *UserID) String() string {
-	return u.value
+func (u *User) ID() string {
+	return u.id.String()
 }
 
-func (u *UserName) String() string {
-	return u.value
+func (u *User) Name() string {
+	return u.name.String()
 }

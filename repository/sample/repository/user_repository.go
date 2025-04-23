@@ -45,20 +45,20 @@ func (r *userRepository) FindByName(name string) (*domain.User, error) {
 }
 
 func (r *userRepository) Save(user *domain.User) error {
-	existingUser, err := r.FindByName(user.UserName.String())
+	existingUser, err := r.FindByName(user.Name())
 	if err != nil {
 		return err
 	}
 
 	if existingUser == nil {
 		query := `INSERT INTO users (id, name) VALUES (?, ?)`
-		_, err = r.db.Exec(query, user.UserID.String(), user.UserName.String())
+		_, err = r.db.Exec(query, user.ID(), user.Name())
 		if err != nil {
 			return err
 		}
 	} else {
 		query := `UPDATE users SET id = ? WHERE name = ?`
-		_, err = r.db.Exec(query, user.UserID.String(), user.UserName.String())
+		_, err = r.db.Exec(query, user.ID, user.Name())
 		if err != nil {
 			return err
 		}

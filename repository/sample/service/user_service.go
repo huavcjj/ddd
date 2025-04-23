@@ -29,7 +29,10 @@ func (s *userService) CreateUser(name string) (*domain.User, error) {
 		return nil, errors.New("user already exists")
 	}
 
-	userName := domain.NewUserName(name)
+	userName, err := domain.NewUserName(name)
+	if err != nil {
+		return nil, err
+	}
 	user, err := domain.NewUser(userName)
 	if err != nil {
 		return nil, err

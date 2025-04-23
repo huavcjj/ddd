@@ -106,8 +106,8 @@ func setupRoutes() http.Handler {
 		w.WriteHeader(http.StatusCreated)
 
 		json.NewEncoder(w).Encode(map[string]string{
-			"user_id": user.UserID.String(),
-			"name":    user.UserName.String(),
+			"user_id": user.ID(),
+			"name":    user.Name(),
 		})
 	})
 	return mux
