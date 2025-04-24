@@ -60,21 +60,6 @@ func NewUser(name UserName) (*User, error) {
 	}, nil
 }
 
-func NewUserFromStrings(idStr, nameStr string) (*User, error) {
-	id, err := NewUserID(idStr)
-	if err != nil {
-		return nil, err
-	}
-	name, err := NewUserName(nameStr)
-	if err != nil {
-		return nil, err
-	}
-	return &User{
-		id:   id,
-		name: name,
-	}, nil
-}
-
 func (u *User) ID() string {
 	return u.id.String()
 }

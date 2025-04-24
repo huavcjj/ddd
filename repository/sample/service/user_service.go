@@ -2,6 +2,7 @@ package service
 
 import (
 	"ddd/repository/sample/domain"
+	"ddd/repository/sample/dto"
 	"ddd/repository/sample/repository"
 	"errors"
 )
@@ -11,7 +12,7 @@ type userService struct {
 }
 
 type IUserService interface {
-	CreateUser(name string) (*domain.User, error)
+	CreateUser(name string) (*dto.UserDTO, error)
 }
 
 func NewUserService(userRepository repository.IUserRepository) IUserService {
@@ -20,18 +21,17 @@ func NewUserService(userRepository repository.IUserRepository) IUserService {
 	}
 }
 
-func (s *userService) CreateUser(name string) (*domain.User, error) {
-	existingUser, err := s.userRepository.FindByName(name)
+func (s *userService) CreateUser(name string) (*dto.UserDTO, error) {
+	userName, err := domain.NewUserName(name)
+	if err != nil {
+		return nil, err
+	}
+	existingUser, err := s.userRepository.FindByName(userName)
 	if err != nil {
 		return nil, err
 	}
 	if existingUser != nil {
 		return nil, errors.New("user already exists")
-	}
-
-	userName, err := domain.NewUserName(name)
-	if err != nil {
-		return nil, err
 	}
 	user, err := domain.NewUser(userName)
 	if err != nil {
@@ -43,5 +43,5 @@ func (s *userService) CreateUser(name string) (*domain.User, error) {
 		return nil, err
 	}
 
-	return user, nil
+	return dto.NewUserDTO(user), nil
 }
